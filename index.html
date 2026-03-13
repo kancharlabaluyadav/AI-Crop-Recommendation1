@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>AI Crop Recommendation 🌱</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", Arial;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+        }
+
+        h1 {
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .dashboard {
+            display: flex;
+            gap: 25px;
+        }
+
+        .form-area {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(12px);
+            padding: 25px;
+            border-radius: 15px;
+            width: 320px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 8px;
+            background: #f1f3f6;
+            font-size: 14px;
+        }
+
+        input:focus {
+            outline: none;
+            box-shadow: 0 0 6px #4facfe;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            transform: scale(1.04);
+        }
+
+        .result-card {
+            width: 420px;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            animation: fade 1s;
+        }
+
+        .weather-card {
+            background: #f1f7ff;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .result {
+            font-size: 22px;
+            font-weight: bold;
+            margin-top: 10px;
+            color: #333;
+        }
+
+        img {
+            width: 240px;
+            border-radius: 12px;
+            margin-top: 15px;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2);
+        }
+
+        #cropDesc {
+            margin-top: 10px;
+            font-size: 15px;
+            color: #444;
+        }
+
+        #fertilizer {
+            margin-top: 15px;
+            color: #2c7a2c;
+        }
+
+        #fertReason {
+            font-size: 14px;
+            color: #444;
+        }
+
+        .loader {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .loader div {
+            width: 10px;
+            height: 10px;
+            margin: 4px;
+            background: #28a745;
+            border-radius: 50%;
+            display: inline-block;
+            animation: bounce 0.6s infinite alternate;
+        }
+
+        .loader div:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loader div:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes bounce {
+            from {
+                transform: translateY(0);
+            }
+
+            to {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes fade {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <h1>🌾 AI Smart Crop Recommendation</h1>
+
+    <div class="dashboard">
+
+        <div class="form-area">
+
+            <input id="city" placeholder="Enter City Name">
+
+            <button onclick="getWeather()">Get Weather 🌦</button>
+
+            <input id="n" placeholder="Nitrogen">
+            <input id="p" placeholder="Phosphorus">
+            <input id="k" placeholder="Potassium">
+            <input id="temperature" placeholder="Temperature">
+            <input id="humidity" placeholder="Humidity">
+            <input id="ph" placeholder="pH">
+            <input id="rainfall" placeholder="Rainfall">
+
+            <button onclick="predict()">Recommend Crop</button>
+
+            <div class="loader" id="loader">
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+
+        </div>
+
+        <div class="result-card">
+
+            <div class="weather-card">
+                🌡 Temperature: <span id="tempShow">--</span> °C |
+                💧 Humidity: <span id="humShow">--</span> %
+            </div>
+
+            <div class="result" id="result"></div>
+
+            <img id="cropImage">
+
+            <p id="cropDesc"></p>
+
+            <h3 id="fertilizer"></h3>
+
+            <p id="fertReason"></p>
+
+        </div>
+
+    </div>
+
+    <script>
+
+        async function getWeather() {
+
+            let city = document.getElementById("city").value
+
+            let response = await fetch("http://127.0.0.1:8000/weather/" + city)
+
+            let data = await response.json()
+
+            let temp = Math.round(data.temperature + 2)
+
+            document.getElementById("temperature").value = temp
+            document.getElementById("humidity").value = data.humidity
+
+            document.getElementById("tempShow").innerHTML = temp
+            document.getElementById("humShow").innerHTML = data.humidity
+
+        }
+
+        async function predict() {
+
+            document.getElementById("loader").style.display = "block"
+
+            let data = {
+                n: parseFloat(document.getElementById("n").value),
+                p: parseFloat(document.getElementById("p").value),
+                k: parseFloat(document.getElementById("k").value),
+                temperature: parseFloat(document.getElementById("temperature").value),
+                humidity: parseFloat(document.getElementById("humidity").value),
+                ph: parseFloat(document.getElementById("ph").value),
+                rainfall: parseFloat(document.getElementById("rainfall").value)
+            }
+
+            let response = await fetch("http://127.0.0.1:8000/predict", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            })
+
+            let result = await response.json()
+
+            document.getElementById("loader").style.display = "none"
+
+            document.getElementById("result").innerHTML =
+                "Recommended Crop 🌱 : " + result.crop
+
+            document.getElementById("cropImage").src = result.image
+
+            document.getElementById("cropDesc").innerHTML = result.description
+
+            document.getElementById("fertilizer").innerHTML =
+                "Best Fertilizer 🧪 : " + result.fertilizer
+
+            document.getElementById("fertReason").innerHTML =
+                result.fertilizer_reason
+
+        }
+
+    </script>
+
+</body>
+
+</html>
