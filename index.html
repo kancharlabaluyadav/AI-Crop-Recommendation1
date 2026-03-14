@@ -226,7 +226,7 @@
 
             let city = document.getElementById("city").value
 
-            let response = await fetch("http://127.0.0.1:8000/weather/" + city)
+            let response = await fetch("/weather/" + city)
 
             let data = await response.json()
 
