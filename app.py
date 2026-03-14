@@ -4,8 +4,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import pickle
 import requests
+from fastapi.responses import FileResponse
 
 app = FastAPI()
+
+@app.get("/")
+def home():
+    return FileResponse("index.html")
 
 app.add_middleware(
     CORSMiddleware,
