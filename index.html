@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AI Crop Recommendation 🌱</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", Arial;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            padding: 20px;
+        }
+
+        h1 {
+            color: white;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .dashboard {
+            display: flex;
+            gap: 25px;
+            justify-content: center;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        .form-area {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(12px);
+            padding: 25px;
+            border-radius: 15px;
+            width: 320px;
+            max-width: 100%;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 8px;
+            background: #f1f3f6;
+            font-size: 16px;
+        }
+
+        input:focus {
+            outline: none;
+            box-shadow: 0 0 6px #4facfe;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            transform: scale(1.04);
+        }
+
+        .result-card {
+            width: 420px;
+            max-width: 100%;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            animation: fade 1s;
+        }
+
+        .weather-card {
+            background: #f1f7ff;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .result {
+            font-size: 22px;
+            font-weight: bold;
+            margin-top: 10px;
+            color: #333;
+        }
+
+        img {
+            width: 240px;
+            max-width: 100%;
+            border-radius: 12px;
+            margin-top: 15px;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2);
+        }
+
+        #cropDesc {
+            margin-top: 10px;
+            font-size: 15px;
+            color: #444;
+        }
+
+        #fertilizer {
+            margin-top: 15px;
+            color: #2c7a2c;
+        }
+
+        #fertReason {
+            font-size: 14px;
+            color: #444;
+        }
+
+        #npkStatus {
+            margin-top: 12px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .loader {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .loader div {
+            width: 10px;
+            height: 10px;
+            margin: 4px;
+            background: #28a745;
+            border-radius: 50%;
+            display: inline-block;
+            animation: bounce 0.6s infinite alternate;
+        }
+
+        .loader div:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loader div:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes bounce {
+            from {
+                transform: translateY(0);
+            }
+
+            to {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes fade {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media(max-width:768px) {
+            body {
+                justify-content: flex-start;
+            }
+
+            h1 {
+                font-size: 22px;
+            }
+
+            .dashboard {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .form-area {
+                width: 100%;
+            }
+
+            .result-card {
+                width: 100%;
+            }
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <h1>🌾 AI Smart Crop Recommendation</h1>
+
+    <div class="dashboard">
+
+        <div class="form-area">
+
+            <input id="city" placeholder="Enter City Name">
+            <button onclick="getWeather()">Get Weather 🌦</button>
+
+            <input id="n" type="number" placeholder="Nitrogen" required>
+            <input id="p" type="number" placeholder="Phosphorus" required>
+            <input id="k" type="number" placeholder="Potassium" required>
+            <input id="temperature" type="number" placeholder="Temperature" required>
+            <input id="humidity" type="number" placeholder="Humidity" required>
+            <input id="ph" type="number" step="0.1" placeholder="pH" required>
+            <input id="rainfall" type="number" placeholder="Rainfall" required>
+
+            <button onclick="predict()">Recommend Crop</button>
+
+            <div class="loader" id="loader">
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+
+        </div>
+
+        <div class="result-card">
+
+            <div class="weather-card">
+                🌡 Temperature: <span id="tempShow">--</span> °C |
+                💧 Humidity: <span id="humShow">--</span> %
+            </div>
+
+            <div class="result" id="result"></div>
+
+            <img id="cropImage">
+
+            <p id="cropDesc"></p>
+
+            <h3 id="fertilizer"></h3>
+
+            <p id="fertReason"></p>
+
+            <!-- 🌱 NEW NPK STATUS -->
+            <p id="npkStatus"></p>
+
+        </div>
+
+    </div>
+
+    <script>
+
+        async function getWeather() {
+
+            let city = document.getElementById("city").value
+
+            if (!city) {
+                alert("⚠️ Please enter city name!")
+                return
+            }
+
+            try {
+
+                // ✅ IMPORTANT CHANGE
+                let response = await fetch("http://127.0.0.1:8000/weather/" + city)
+
+                let data = await response.json()
+
+                console.log("Weather data:", data)
+
+                if (data.error) {
+                    alert("❌ " + data.error)
+                    return
+                }
+
+                let temp = Math.round(data.temperature)
+
+                document.getElementById("temperature").value = temp
+                document.getElementById("humidity").value = data.humidity
+
+                document.getElementById("tempShow").innerHTML = temp
+                document.getElementById("humShow").innerHTML = data.humidity
+
+            } catch (error) {
+
+                console.error(error)
+                alert("⚠️ Failed to fetch weather")
+            }
+        }
+
+        async function predict() {
+
+            let n = document.getElementById("n").value
+            let p = document.getElementById("p").value
+            let k = document.getElementById("k").value
+            let temperature = document.getElementById("temperature").value
+            let humidity = document.getElementById("humidity").value
+            let ph = document.getElementById("ph").value
+            let rainfall = document.getElementById("rainfall").value
+
+            // 🚨 Validation
+            if (!n || !p || !k || !temperature || !humidity || !ph || !rainfall) {
+                alert("⚠️ Please fill all fields before predicting!")
+                return
+            }
+
+            document.getElementById("loader").style.display = "block"
+
+            let data = {
+                n: parseFloat(n),
+                p: parseFloat(p),
+                k: parseFloat(k),
+                temperature: parseFloat(temperature),
+                humidity: parseFloat(humidity),
+                ph: parseFloat(ph),
+                rainfall: parseFloat(rainfall)
+            }
+
+            // ✅ IMPORTANT CHANGE
+            let response = await fetch("http://127.0.0.1:8000/predict", {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify(data)
+            })
+
+            let result = await response.json()
+
+            document.getElementById("loader").style.display = "none"
+
+            document.getElementById("result").innerHTML =
+                "Recommended Crop 🌱 : " + result.crop
+
+            document.getElementById("cropImage").src = result.image
+
+            document.getElementById("cropDesc").innerHTML =
+                result.description
+
+            document.getElementById("fertilizer").innerHTML =
+                "Best Fertilizer 🧪 : " + result.fertilizer
+
+            document.getElementById("fertReason").innerHTML =
+                result.fertilizer_reason
+
+            document.getElementById("npkStatus").innerHTML =
+                "🌱 Soil Status → N: " + result.n_status +
+                " | P: " + result.p_status +
+                " | K: " + result.k_status
+        }
+
+    </script>
+
+</body>
+
+</html>
