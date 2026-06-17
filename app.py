@@ -11,6 +11,10 @@ app = FastAPI()
 
 @app.get("/")
 def home():
+    return FileResponse("home.html")
+
+@app.get("/crop")
+def crop():
     return FileResponse("index.html")
 
 app.add_middleware(
